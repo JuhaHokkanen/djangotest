@@ -1,16 +1,47 @@
 from django.shortcuts import render, redirect
 from .models import Supplier, Product
+from django.contrib.auth import authenticate, login, logout
 
-def landingview(request):
-    return render(request, 'landingpage.html')
+
+
+# Loginpage
+def loginview(request):
+    return render (request, "loginpage.html")
+
+# Login action
+def login_action(request):
+    user = request.POST['username']
+    passw = request.POST['password']
+    # Löytyykö kyseistä käyttäjää?
+    user = authenticate(username = user, password = passw)
+    #Jos löytyy:
+    if user:
+        # Kirjataan sisään
+        login(request, user)
+        # Tervehdystä varten context
+        context = {'name': user.first_name}
+        # Kutsutaan suoraan landingview.html
+        return render(request,'landingpage.html',context)
+    # Jos ei kyseistä käyttäjää löydy
+    else:
+        return render(request, 'loginerror.html')
+
+
+# Logout action
+def logout_action(request):
+    logout(request)
+    return render(request, 'loginpage.html')
 
 # Product view´s
 
 def productlistview(request):
-    productlist = Product.objects.all()
-    supplierlist = Supplier.objects.all()
-    context = {'products': productlist, 'suppliers': supplierlist}
-    return render (request,"productlist.html",context)
+    if not request.user.is_authenticated:
+        return render(request, 'loginpage.html')
+    else:
+        productlist = Product.objects.all()
+        supplierlist = Supplier.objects.all()
+        context = {'products': productlist, 'suppliers': supplierlist}
+        return render (request,"productlist.html",context)
 
 
 def addproduct(request):
@@ -88,3 +119,19 @@ def searchsuppliers(request):
     filtered = Supplier.objects.filter(companyname__icontains=search)
     context = {'suppliers': filtered}
     return render (request,"supplierlist.html",context)
+
+def edit_supplier_get(request, id):
+        supplier = Supplier.objects.get(id = id)
+        context = {'supplier': supplier}
+        return render (request,"edit_supplier.html",context)
+
+
+def edit_supplier_post(request, id):
+        item = Supplier.objects.get(id = id)
+        item.address = request.POST['address']
+        item.phone = request.POST['phone']
+        item.email = request.POST['email']
+        item.country = request.POST['country']
+        item.contactname = request.POST['contactname']
+        item.save()
+        return redirect(supplierlistview)
