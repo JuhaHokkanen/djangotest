@@ -21,7 +21,7 @@ services:
       - key: WEB_CONCURRENCY
         value: 4
       - key: DJANGO_SUPERUSER_USERNAME
-        value: "home"
+        value: "juha"
       - key: DJANGO_SUPERUSER_PASSWORD
         value: "saint299"
       - key: DJANGO_SUPERUSER_EMAIL
